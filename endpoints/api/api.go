@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/avalonbits/round1fight/service/person"
 	"github.com/labstack/echo/v4"
 )
 
@@ -40,7 +41,7 @@ func (jd *jsonDate) MarshalJSON() ([]byte, error) {
 	return []byte(jd.Format("2006-01-02")), nil
 }
 
-type person struct {
+type personJSON struct {
 	ID       string   `json:"id"`
 	Nickname string   `json:"apelido"`
 	Name     string   `json:"nome"`
@@ -48,7 +49,7 @@ type person struct {
 	Stack    []string `json:"stack"`
 }
 
-func (p *person) validateCreate() error {
+func (p *personJSON) validateCreate() error {
 	p.ID = ""
 	p.Nickname = strings.TrimSpace(p.Nickname)
 	if p.Nickname == "" {
@@ -68,7 +69,7 @@ func (p *person) validateCreate() error {
 }
 
 func (p *Person) Create(c echo.Context) error {
-	in := &person{}
+	in := &personJSON{}
 	if err := c.Bind(in); err != nil {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}

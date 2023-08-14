@@ -42,7 +42,7 @@ func (q *Queries) CreatePerson(ctx context.Context, arg CreatePersonParams) erro
 }
 
 const getPerson = `-- name: GetPerson :one
-SELECT id, nickname, name, stack FROM Person where id = $1
+SELECT id, nickname, name, birthday, stack FROM Person where id = $1
 `
 
 func (q *Queries) GetPerson(ctx context.Context, id string) (Person, error) {
@@ -52,13 +52,14 @@ func (q *Queries) GetPerson(ctx context.Context, id string) (Person, error) {
 		&i.ID,
 		&i.Nickname,
 		&i.Name,
+		&i.Birthday,
 		&i.Stack,
 	)
 	return i, err
 }
 
 const searchPerson = `-- name: SearchPerson :many
-SELECT id, nickname, name, stack  FROM Person WHERE person_fts_idx @@ to_tsquery($1::text)
+SELECT id, nickname, name, birthday, stack  FROM Person WHERE person_fts_idx @@ to_tsquery($1::text) LIMIT 50
 `
 
 func (q *Queries) SearchPerson(ctx context.Context, query string) ([]Person, error) {
@@ -74,6 +75,7 @@ func (q *Queries) SearchPerson(ctx context.Context, query string) ([]Person, err
 			&i.ID,
 			&i.Nickname,
 			&i.Name,
+			&i.Birthday,
 			&i.Stack,
 		); err != nil {
 			return nil, err

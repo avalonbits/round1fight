@@ -4,11 +4,14 @@
 
 package repo
 
-import ()
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type Person struct {
 	ID       string
 	Nickname string
 	Name     string
+	Birthday pgtype.Date
 	Stack    []string
 }

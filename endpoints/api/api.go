@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -9,17 +10,41 @@ import (
 )
 
 type Person struct {
+	svc *person.Service
 }
 
-func New() *Person {
-	return &Person{}
+func New(svc *person.Service) *Person {
+	return &Person{
+		svc: svc,
+	}
+}
+
+type jsonDate struct {
+	time.Time
+}
+
+func (jd *jsonDate) UnmarshalJSON(b []byte) error {
+	in := strings.Trim(strings.TrimSpace(string(b)), "\"\\")
+	if in == "" {
+		return errors.New("erro em data")
+	}
+	t, err := time.Parse("2006-01-02", in)
+	if err != nil {
+		return err
+	}
+	jd.Time = t
+	return nil
+}
+
+func (jd *jsonDate) MarshalJSON() ([]byte, error) {
+	return []byte(jd.Format("2006-01-02")), nil
 }
 
 type person struct {
 	ID       string   `json:"id"`
 	Nickname string   `json:"apelido"`
 	Name     string   `json:"nome"`
-	Birthday string   `json:"nascimento"`
+	Birthday jsonDate `json:"nascimento"`
 	Stack    []string `json:"stack"`
 }
 
@@ -27,25 +52,23 @@ func (p *person) validateCreate() error {
 	p.ID = ""
 	p.Nickname = strings.TrimSpace(p.Nickname)
 	if p.Nickname == "" {
-		return error.New("erro em apelido")
+		return errors.New("erro em apelido")
 	}
 	p.Name = strings.TrimSpace(p.Name)
-	if p.Name != "" {
-		return error.New("erro em nome")
+	if p.Name == "" {
+		return errors.New("erro em nome")
 	}
-	birthday, err := time.Parse("2006-02-01", strings.TrimSpace(p.Birthday))
-	if err != nil {
-		return err
+	if p.Birthday.IsZero() {
+		return errors.New("erro em nascimento")
 	}
-	p.Birthday = birthday.Format("2006-02-01")
-	for i, item := range stack {
-		stack[i] = strings.TrimSpace(item)
+	for i, item := range p.Stack {
+		p.Stack[i] = strings.TrimSpace(item)
 	}
 	return nil
 }
 
 func (p *Person) Create(c echo.Context) error {
-	in := person{}
+	in := &person{}
 	if err := c.Bind(in); err != nil {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}
@@ -53,7 +76,7 @@ func (p *Person) Create(c echo.Context) error {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}
 
-	return httpErr(http.StatusNotImplemented, "")
+	return nil
 }
 
 func (p *Person) Get(c echo.Context) error {

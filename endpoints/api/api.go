@@ -98,7 +98,11 @@ func (p *Person) Search(c echo.Context) error {
 }
 
 func (h *Person) Count(c echo.Context) error {
-	return httpErr(http.StatusNotImplemented, "")
+	count, err := h.svc.Count(c.Request().Context())
+	if err != nil {
+		return httpErr(http.StatusInternalServerError, err.Error())
+	}
+	return c.String(http.StatusOK, fmt.Sprintf("%d", count))
 }
 
 func httpErr(code int, msg string) *echo.HTTPError {

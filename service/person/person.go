@@ -33,3 +33,7 @@ func (s *Service) Create(
 		Stack: stack,
 	})
 }
+
+func (s *Service) Count(ctx context.Context) (int64, error) {
+	return s.queries.CountPerson(ctx)
+}

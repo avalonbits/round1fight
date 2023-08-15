@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -38,15 +39,17 @@ func (jd *jsonDate) UnmarshalJSON(b []byte) error {
 }
 
 func (jd *jsonDate) MarshalJSON() ([]byte, error) {
-	return []byte(jd.Format("2006-01-02")), nil
+	d := jd.Format("2006-01-02")
+	fmt.Println(d)
+	return []byte(d), nil
 }
 
 type personJSON struct {
-	ID       string   `json:"id"`
-	Nickname string   `json:"apelido"`
-	Name     string   `json:"nome"`
-	Birthday jsonDate `json:"nascimento"`
-	Stack    []string `json:"stack"`
+	ID       string    `json:"id"`
+	Nickname string    `json:"apelido"`
+	Name     string    `json:"nome"`
+	Birthday *jsonDate `json:"nascimento"`
+	Stack    []string  `json:"stack"`
 }
 
 func (p *personJSON) validateCreate() error {
@@ -77,7 +80,13 @@ func (p *Person) Create(c echo.Context) error {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}
 
-	return nil
+	id, err := p.svc.Create(c.Request().Context(), in.Nickname, in.Name, in.Birthday.Time, in.Stack)
+	if err != nil {
+		return httpErr(http.StatusInternalServerError, err.Error())
+	}
+
+	c.Response().Header().Set("Location", "/pessoa/"+id)
+	return c.String(http.StatusCreated, "")
 }
 
 func (p *Person) Get(c echo.Context) error {

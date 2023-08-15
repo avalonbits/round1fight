@@ -7,6 +7,8 @@ package repo
 
 import (
 	"context"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countPerson = `-- name: CountPerson :one
@@ -21,13 +23,14 @@ func (q *Queries) CountPerson(ctx context.Context) (int64, error) {
 }
 
 const createPerson = `-- name: CreatePerson :exec
-INSERT INTO Person (id, nickname, name, stack) VALUES ($1, $2, $3, $4)
+INSERT INTO Person (id, nickname, name, birthday, stack) VALUES ($1, $2, $3, $4, $5)
 `
 
 type CreatePersonParams struct {
 	ID       string
 	Nickname string
 	Name     string
+	Birthday pgtype.Date
 	Stack    []string
 }
 
@@ -36,6 +39,7 @@ func (q *Queries) CreatePerson(ctx context.Context, arg CreatePersonParams) erro
 		arg.ID,
 		arg.Nickname,
 		arg.Name,
+		arg.Birthday,
 		arg.Stack,
 	)
 	return err

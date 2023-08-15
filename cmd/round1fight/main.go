@@ -6,17 +6,24 @@ import (
 
 	"github.com/avalonbits/round1fight/endpoints/api"
 	"github.com/avalonbits/round1fight/service/person"
+	"github.com/avalonbits/round1fight/storage/pg"
 	"github.com/avalonbits/round1fight/storage/pg/repo"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
-	db, err := pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	ctx := context.Background()
+	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
 	if err != nil {
 		panic(err)
 	}
-	svc := person.New(repo.New(db))
+	defer pool.Close()
+	if _, err := pool.Exec(ctx, pg.Schema); err != nil {
+		panic(err)
+	}
+
+	svc := person.New(repo.New(pool))
 	person := api.New(svc)
 	e := echo.New()
 	e.POST("/pessoas", person.Create)

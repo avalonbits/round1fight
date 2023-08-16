@@ -2,7 +2,11 @@ package main
 
 import (
 	"context"
+	"log"
+	"net/http"
 	"os"
+
+	_ "net/http/pprof"
 
 	"github.com/avalonbits/round1fight/endpoints/api"
 	"github.com/avalonbits/round1fight/service/person"
@@ -32,5 +36,8 @@ func main() {
 	e.GET("/pessoas", person.Search)
 	e.GET("/contagem-pessoas", person.Count)
 
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	e.Logger.Fatal(e.Start(":1323"))
 }

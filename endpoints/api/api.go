@@ -61,6 +61,9 @@ func (p *personJSON) validateCreate(policy *bluemonday.Policy) error {
 	if p.Nickname == "" {
 		return errors.New("erro em apelido")
 	}
+	if len(p.Nickname) > 32 {
+		p.Nickname = p.Nickname[:32]
+	}
 	p.Name = policy.Sanitize(strings.TrimSpace(p.Name))
 	if p.Name == "" {
 		return errors.New("erro em nome")

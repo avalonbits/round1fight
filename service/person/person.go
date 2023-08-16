@@ -38,6 +38,7 @@ func (s *Service) Count(ctx context.Context) (int64, error) {
 	return s.queries.CountPerson(ctx)
 }
 
+//easyjson:json
 type Result struct {
 	ID       string   `json:"id"`
 	Nickname string   `json:"apelido"`

@@ -1,7 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -14,6 +17,7 @@ import (
 	"github.com/avalonbits/round1fight/storage/pg/repo"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/mailru/easyjson"
 )
 
 func main() {
@@ -35,9 +39,52 @@ func main() {
 	e.GET("/pessoas/:id", person.Get)
 	e.GET("/pessoas", person.Search)
 	e.GET("/contagem-pessoas", person.Count)
+	e.JSONSerializer = easyJsonSerializer{}
 
 	go func() {
 		log.Println(http.ListenAndServe("localhost:6060", nil))
 	}()
 	e.Logger.Fatal(e.Start(":1323"))
+}
+
+type easyJsonSerializer struct {
+}
+
+func (_ easyJsonSerializer) Serialize(c echo.Context, data any, indent string) error {
+	var buf []byte
+	var err error
+
+	ejs, ok := data.(easyjson.Marshaler)
+	if ok {
+		buf, err = easyjson.Marshal(ejs)
+	} else {
+		buf, err = json.Marshal(data)
+	}
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	_, err = io.Copy(c.Response(), bytes.NewBuffer(buf))
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+
+	return nil
+}
+
+func (_ easyJsonSerializer) Deserialize(c echo.Context, data any) error {
+
+	js, err := io.ReadAll(c.Request().Body)
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	ejs, ok := data.(easyjson.Unmarshaler)
+	if ok {
+		err = easyjson.Unmarshal(js, ejs)
+	} else {
+		err = json.Unmarshal(js, data)
+	}
+	if err != nil {
+		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
+	}
+	return nil
 }

@@ -47,6 +47,7 @@ func (jd *jsonDate) MarshalJSON() ([]byte, error) {
 	return []byte(d), nil
 }
 
+//easyjson:json
 type personJSON struct {
 	ID       string    `json:"id"`
 	Nickname string    `json:"apelido"`
@@ -55,16 +56,16 @@ type personJSON struct {
 	Stack    []string  `json:"stack"`
 }
 
-func (p *personJSON) validateCreate(policy *bluemonday.Policy) error {
+func (p *personJSON) validateCreate() error {
 	p.ID = ""
-	p.Nickname = policy.Sanitize(strings.TrimSpace(p.Nickname))
+	p.Nickname = strings.TrimSpace(p.Nickname)
 	if p.Nickname == "" {
 		return errors.New("erro em apelido")
 	}
 	if len(p.Nickname) > 32 {
 		p.Nickname = p.Nickname[:32]
 	}
-	p.Name = policy.Sanitize(strings.TrimSpace(p.Name))
+	p.Name = strings.TrimSpace(p.Name)
 	if p.Name == "" {
 		return errors.New("erro em nome")
 	}
@@ -72,7 +73,7 @@ func (p *personJSON) validateCreate(policy *bluemonday.Policy) error {
 		return errors.New("erro em nascimento")
 	}
 	for i, item := range p.Stack {
-		p.Stack[i] = policy.Sanitize(strings.TrimSpace(item))
+		p.Stack[i] = strings.TrimSpace(item)
 	}
 	return nil
 }
@@ -82,7 +83,7 @@ func (p *Person) Create(c echo.Context) error {
 	if err := c.Bind(in); err != nil {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}
-	if err := in.validateCreate(p.queryPolicy); err != nil {
+	if err := in.validateCreate(); err != nil {
 		return httpErr(http.StatusUnprocessableEntity, err.Error())
 	}
 

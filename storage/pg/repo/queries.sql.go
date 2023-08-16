@@ -64,8 +64,8 @@ func (q *Queries) GetPerson(ctx context.Context, id string) (Person, error) {
 
 const searchPerson = `-- name: SearchPerson :many
 SELECT id, nickname, name, birthday, stack  FROM Person
-    WHERE to_tsvector('portuguese', nickname || ' ' || name || COALESCE(f_stack_array(stack), ''))
-          @@ to_tsquery($1::text) LIMIT 50
+    WHERE to_tsvector('portuguese', nickname || ' ' || name || ' ' || COALESCE(f_stack_array(stack), ''))
+          @@ plainto_tsquery($1::text) LIMIT 50
 `
 
 func (q *Queries) SearchPerson(ctx context.Context, query string) ([]Person, error) {

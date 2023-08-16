@@ -20,7 +20,7 @@ type Person struct {
 func New(svc *person.Service) *Person {
 	return &Person{
 		svc:         svc,
-		queryPolicy: bluemonday.StrictPolicy(),
+		queryPolicy: bluemonday.UGCPolicy(),
 	}
 }
 

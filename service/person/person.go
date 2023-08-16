@@ -2,7 +2,6 @@ package person
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/avalonbits/round1fight/storage/pg/repo"
@@ -40,6 +39,11 @@ func (s *Service) Count(ctx context.Context) (int64, error) {
 }
 
 type SearchResult struct {
+	ID       string   `json:"id"`
+	Nickname string   `json:"apelido"`
+	Name     string   `json:"name"`
+	Birthday string   `json:"nascimento"`
+	Stack    []string `json:"stack"`
 }
 
 func (s *Service) Search(ctx context.Context, query string) ([]SearchResult, error) {
@@ -48,10 +52,15 @@ func (s *Service) Search(ctx context.Context, query string) ([]SearchResult, err
 		return nil, err
 	}
 
-	var results []SearchResult
+	results := []SearchResult{}
 	for _, r := range res {
-		fmt.Printf("%#v+\n", r)
-		results = append(results, SearchResult{})
+		results = append(results, SearchResult{
+			ID:       r.ID,
+			Nickname: r.Nickname,
+			Name:     r.Name,
+			Stack:    r.Stack,
+			Birthday: r.Birthday.Time.Format("2006-01-02"),
+		})
 	}
 	return results, nil
 }

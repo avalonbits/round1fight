@@ -9,15 +9,18 @@ import (
 
 	"github.com/avalonbits/round1fight/service/person"
 	"github.com/labstack/echo/v4"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type Person struct {
-	svc *person.Service
+	svc         *person.Service
+	queryPolicy *bluemonday.Policy
 }
 
 func New(svc *person.Service) *Person {
 	return &Person{
-		svc: svc,
+		svc:         svc,
+		queryPolicy: bluemonday.StrictPolicy(),
 	}
 }
 
@@ -77,7 +80,7 @@ func (p *Person) Create(c echo.Context) error {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}
 	if err := in.validateCreate(); err != nil {
-		return httpErr(http.StatusBadRequest, err.Error())
+		return httpErr(http.StatusUnprocessableEntity, err.Error())
 	}
 
 	id, err := p.svc.Create(c.Request().Context(), in.Nickname, in.Name, in.Birthday.Time, in.Stack)
@@ -94,7 +97,21 @@ func (p *Person) Get(c echo.Context) error {
 }
 
 func (p *Person) Search(c echo.Context) error {
-	return httpErr(http.StatusNotImplemented, "")
+	rawQuery := c.QueryParam("t")
+	query := p.queryPolicy.Sanitize(strings.TrimSpace(rawQuery))
+	if query == "" {
+		if rawQuery != "" {
+			return c.String(http.StatusOK, "[]")
+		}
+		return httpErr(http.StatusBadRequest, "missing query")
+	}
+
+	results, err := p.svc.Search(c.Request().Context(), query)
+	if err != nil {
+		return httpErr(http.StatusBadRequest, err.Error())
+	}
+
+	return c.JSON(http.StatusOK, results)
 }
 
 func (h *Person) Count(c echo.Context) error {

@@ -37,3 +37,10 @@ func (s *Service) Create(
 func (s *Service) Count(ctx context.Context) (int64, error) {
 	return s.queries.CountPerson(ctx)
 }
+
+type SearchResult struct {
+}
+
+func (s *Service) Search(ctx context.Context, query string) ([]SearchResult, error) {
+	return []SearchResult{}, nil
+}

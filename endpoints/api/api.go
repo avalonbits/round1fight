@@ -20,7 +20,7 @@ type Person struct {
 func New(svc *person.Service) *Person {
 	return &Person{
 		svc:         svc,
-		queryPolicy: bluemonday.UGCPolicy(),
+		queryPolicy: bluemonday.StrictPolicy(),
 	}
 }
 
@@ -93,7 +93,16 @@ func (p *Person) Create(c echo.Context) error {
 }
 
 func (p *Person) Get(c echo.Context) error {
-	return httpErr(http.StatusNotImplemented, "")
+	id := p.queryPolicy.Sanitize(strings.TrimSpace(c.Param("id")))
+	if id == "" {
+		return httpErr(http.StatusBadRequest, "missing id")
+	}
+
+	res, err := p.svc.Get(c.Request().Context(), id)
+	if err != nil {
+		return httpErr(http.StatusNotFound, err.Error())
+	}
+	return c.JSON(http.StatusOK, &res)
 }
 
 func (p *Person) Search(c echo.Context) error {

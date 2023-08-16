@@ -27,7 +27,7 @@ func main() {
 	person := api.New(svc)
 	e := echo.New()
 	e.POST("/pessoas", person.Create)
-	e.GET("/pessoas/:pid", person.Get)
+	e.GET("/pessoas/:id", person.Get)
 	e.GET("/pessoas", person.Search)
 	e.GET("/contagem-pessoas", person.Count)
 	e.Logger.Fatal(e.Start(":1323"))

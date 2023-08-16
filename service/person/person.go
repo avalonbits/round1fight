@@ -64,3 +64,17 @@ func (s *Service) Search(ctx context.Context, query string) ([]SearchResult, err
 	}
 	return results, nil
 }
+
+func (s *Service) Get(ctx context.Context, id string) (SearchResult, error) {
+	r, err := s.queries.GetPerson(ctx, id)
+	if err != nil {
+		return SearchResult{}, err
+	}
+	return SearchResult{
+		ID:       r.ID,
+		Nickname: r.Nickname,
+		Name:     r.Name,
+		Stack:    r.Stack,
+		Birthday: r.Birthday.Time.Format("2006-01-02"),
+	}, nil
+}

@@ -2,6 +2,7 @@ package person
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/avalonbits/round1fight/storage/pg/repo"
@@ -42,5 +43,15 @@ type SearchResult struct {
 }
 
 func (s *Service) Search(ctx context.Context, query string) ([]SearchResult, error) {
-	return []SearchResult{}, nil
+	res, err := s.queries.SearchPerson(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+
+	var results []SearchResult
+	for _, r := range res {
+		fmt.Printf("%#v+\n", r)
+		results = append(results, SearchResult{})
+	}
+	return results, nil
 }

@@ -10,4 +10,4 @@ CREATE OR REPLACE FUNCTION f_stack_array(varchar[])
   RETURNS text LANGUAGE sql IMMUTABLE AS $$SELECT array_to_string($1, ' ')$$;
 
 CREATE INDEX IF NOT EXISTS person_fts_idx ON Person USING GIN (
-    to_tsvector('portuguese', nickname || ' ' || name || f_stack_array(stack)));
+    to_tsvector('portuguese', nickname || ' ' || name || COALESCE(f_stack_array(stack), '')));

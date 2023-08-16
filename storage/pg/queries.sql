@@ -8,4 +8,4 @@ SELECT COUNT(*) person_count from Person;
 INSERT INTO Person (id, nickname, name, birthday, stack) VALUES ($1, $2, $3, $4, $5);
 
 -- name: SearchPerson :many
-SELECT *  FROM Person WHERE person_fts_idx @@ to_tsquery(@query::text) LIMIT 50;
+SELECT *  FROM Person WHERE to_tsvector('portuguese', nickname || ' ' || name || COALESCE(f_stack_array(stack), '')) @@ to_tsquery(@query::text) LIMIT 50;

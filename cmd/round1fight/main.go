@@ -26,9 +26,11 @@ func main() {
 	svc := person.New(repo.New(pool))
 	person := api.New(svc)
 	e := echo.New()
+
 	e.POST("/pessoas", person.Create)
 	e.GET("/pessoas/:id", person.Get)
 	e.GET("/pessoas", person.Search)
 	e.GET("/contagem-pessoas", person.Count)
+
 	e.Logger.Fatal(e.Start(":1323"))
 }

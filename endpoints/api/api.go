@@ -55,13 +55,13 @@ type personJSON struct {
 	Stack    []string  `json:"stack"`
 }
 
-func (p *personJSON) validateCreate() error {
+func (p *personJSON) validateCreate(policy *bluemonday.Policy) error {
 	p.ID = ""
-	p.Nickname = strings.TrimSpace(p.Nickname)
+	p.Nickname = policy.Sanitize(strings.TrimSpace(p.Nickname))
 	if p.Nickname == "" {
 		return errors.New("erro em apelido")
 	}
-	p.Name = strings.TrimSpace(p.Name)
+	p.Name = policy.Sanitize(strings.TrimSpace(p.Name))
 	if p.Name == "" {
 		return errors.New("erro em nome")
 	}
@@ -69,7 +69,7 @@ func (p *personJSON) validateCreate() error {
 		return errors.New("erro em nascimento")
 	}
 	for i, item := range p.Stack {
-		p.Stack[i] = strings.TrimSpace(item)
+		p.Stack[i] = policy.Sanitize(strings.TrimSpace(item))
 	}
 	return nil
 }
@@ -79,7 +79,7 @@ func (p *Person) Create(c echo.Context) error {
 	if err := c.Bind(in); err != nil {
 		return httpErr(http.StatusBadRequest, err.Error())
 	}
-	if err := in.validateCreate(); err != nil {
+	if err := in.validateCreate(p.queryPolicy); err != nil {
 		return httpErr(http.StatusUnprocessableEntity, err.Error())
 	}
 
@@ -95,7 +95,7 @@ func (p *Person) Create(c echo.Context) error {
 func (p *Person) Get(c echo.Context) error {
 	id := p.queryPolicy.Sanitize(strings.TrimSpace(c.Param("id")))
 	if id == "" {
-		return httpErr(http.StatusBadRequest, "missing id")
+		return httpErr(http.StatusBadRequest, "id ausente")
 	}
 
 	res, err := p.svc.Get(c.Request().Context(), id)
@@ -112,7 +112,7 @@ func (p *Person) Search(c echo.Context) error {
 		if rawQuery != "" {
 			return c.String(http.StatusOK, "[]")
 		}
-		return httpErr(http.StatusBadRequest, "missing query")
+		return httpErr(http.StatusBadRequest, "query ausente")
 	}
 
 	results, err := p.svc.Search(c.Request().Context(), query)

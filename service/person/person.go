@@ -38,7 +38,7 @@ func (s *Service) Count(ctx context.Context) (int64, error) {
 	return s.queries.CountPerson(ctx)
 }
 
-type SearchResult struct {
+type Result struct {
 	ID       string   `json:"id"`
 	Nickname string   `json:"apelido"`
 	Name     string   `json:"name"`
@@ -46,35 +46,33 @@ type SearchResult struct {
 	Stack    []string `json:"stack"`
 }
 
-func (s *Service) Search(ctx context.Context, query string) ([]SearchResult, error) {
+func (s *Service) Search(ctx context.Context, query string) ([]Result, error) {
 	res, err := s.queries.SearchPerson(ctx, query)
 	if err != nil {
 		return nil, err
 	}
 
-	results := []SearchResult{}
+	results := []Result{}
 	for _, r := range res {
-		results = append(results, SearchResult{
-			ID:       r.ID,
-			Nickname: r.Nickname,
-			Name:     r.Name,
-			Stack:    r.Stack,
-			Birthday: r.Birthday.Time.Format("2006-01-02"),
-		})
+		results = append(results, resultFrom(r))
 	}
 	return results, nil
 }
 
-func (s *Service) Get(ctx context.Context, id string) (SearchResult, error) {
+func (s *Service) Get(ctx context.Context, id string) (Result, error) {
 	r, err := s.queries.GetPerson(ctx, id)
 	if err != nil {
-		return SearchResult{}, err
+		return Result{}, err
 	}
-	return SearchResult{
+	return resultFrom(r), nil
+}
+
+func resultFrom(r repo.Person) Result {
+	return Result{
 		ID:       r.ID,
 		Nickname: r.Nickname,
 		Name:     r.Name,
 		Stack:    r.Stack,
 		Birthday: r.Birthday.Time.Format("2006-01-02"),
-	}, nil
+	}
 }

@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sync"
 
 	_ "net/http/pprof"
 
@@ -15,23 +16,50 @@ import (
 	"github.com/avalonbits/round1fight/service/person"
 	"github.com/avalonbits/round1fight/storage/pg"
 	"github.com/avalonbits/round1fight/storage/pg/repo"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
 	"github.com/mailru/easyjson"
 )
 
+type sConn struct {
+	mu   sync.Mutex
+	conn *pgx.Conn
+}
+
+func (c *sConn) Exec(ctx context.Context, q string, args ...any) (pgconn.CommandTag, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn.Exec(ctx, q, args...)
+}
+
+func (c *sConn) Query(ctx context.Context, q string, args ...any) (pgx.Rows, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn.Query(ctx, q, args...)
+}
+
+func (c *sConn) QueryRow(ctx context.Context, q string, args ...any) pgx.Row {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.conn.QueryRow(ctx, q, args...)
+}
+
 func main() {
+	uuid.EnableRandPool()
 	ctx := context.Background()
-	pool, err := pgxpool.New(ctx, os.Getenv("DATABASE_URL"))
+	dbURL := os.Getenv("DATABASE_URL")
+	conn, err := pgx.Connect(ctx, dbURL)
 	if err != nil {
 		panic(err)
 	}
-	defer pool.Close()
-	if _, err := pool.Exec(ctx, pg.Schema); err != nil {
+	defer conn.Close(ctx)
+	if _, err := conn.Exec(ctx, pg.Schema); err != nil {
 		panic(err)
 	}
 
-	svc := person.New(repo.New(pool))
+	svc := person.New(repo.New(&sConn{conn: conn}))
 	person := api.New(svc)
 	e := echo.New()
 

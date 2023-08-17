@@ -75,7 +75,7 @@ func (p *personJSON) validateCreate() error {
 func (p *Person) Create(c echo.Context) error {
 	in := &personJSON{}
 	if err := c.Bind(in); err != nil {
-		return httpErr(http.StatusBadRequest, err.Error())
+		return httpErr(http.StatusUnprocessableEntity, err.Error())
 	}
 	if err := in.validateCreate(); err != nil {
 		return httpErr(http.StatusUnprocessableEntity, err.Error())
@@ -83,7 +83,7 @@ func (p *Person) Create(c echo.Context) error {
 
 	id, err := p.svc.Create(c.Request().Context(), in.Nickname, in.Name, in.Birthday.Time, in.Stack)
 	if err != nil {
-		return httpErr(http.StatusInternalServerError, err.Error())
+		return httpErr(http.StatusUnprocessableEntity, err.Error())
 	}
 
 	c.Response().Header().Set("Location", "/pessoa/"+id)

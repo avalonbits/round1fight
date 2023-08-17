@@ -43,13 +43,19 @@ type Result struct {
 	Stack    []string `json:"stack"`
 }
 
-func (s *Service) Search(ctx context.Context, query string) ([]Result, error) {
+//easyjson:json
+type Results []Result
+
+func (s *Service) Search(ctx context.Context, query string) (Results, error) {
 	res, err := s.queries.SearchPerson(ctx, query)
 	if err != nil {
 		return nil, err
 	}
+	if len(res) == 0 {
+		return Results{}, nil
+	}
 
-	results := []Result{}
+	results := make(Results, 0, len(res))
 	for _, r := range res {
 		results = append(results, resultFrom(r))
 	}

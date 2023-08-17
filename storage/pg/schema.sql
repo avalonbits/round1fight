@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 CREATE TABLE IF NOT EXISTS Person(
     id VARCHAR(36) NOT NULL PRIMARY KEY,
     nickname VARCHAR(32) NOT NULL UNIQUE,
@@ -15,5 +17,11 @@ ALTER TABLE Person
             to_tsvector(
                 'portuguese',
                 nickname || ' ' || name || ' ' || COALESCE(f_stack_array(stack), ''))) STORED;
+
+ALTER TABLE Person
+ADD COLUMN IF NOT EXISTS trigram text
+    GENERATED ALWAYS AS (
+            nickname || ' ' || name || ' ' || COALESCE(f_stack_array(stack), '')) STORED;
+
 
 CREATE INDEX IF NOT EXISTS docsearch_idx ON Person USING GIN(docsearch);

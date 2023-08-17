@@ -17,7 +17,73 @@ var (
 	_ easyjson.Marshaler
 )
 
-func easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(in *jlexer.Lexer, out *Result) {
+func easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(in *jlexer.Lexer, out *Results) {
+	isTopLevel := in.IsStart()
+	if in.IsNull() {
+		in.Skip()
+		*out = nil
+	} else {
+		in.Delim('[')
+		if *out == nil {
+			if !in.IsDelim(']') {
+				*out = make(Results, 0, 0)
+			} else {
+				*out = Results{}
+			}
+		} else {
+			*out = (*out)[:0]
+		}
+		for !in.IsDelim(']') {
+			var v1 Result
+			(v1).UnmarshalEasyJSON(in)
+			*out = append(*out, v1)
+			in.WantComma()
+		}
+		in.Delim(']')
+	}
+	if isTopLevel {
+		in.Consumed()
+	}
+}
+func easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(out *jwriter.Writer, in Results) {
+	if in == nil && (out.Flags&jwriter.NilSliceAsEmpty) == 0 {
+		out.RawString("null")
+	} else {
+		out.RawByte('[')
+		for v2, v3 := range in {
+			if v2 > 0 {
+				out.RawByte(',')
+			}
+			(v3).MarshalEasyJSON(out)
+		}
+		out.RawByte(']')
+	}
+}
+
+// MarshalJSON supports json.Marshaler interface
+func (v Results) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+
+// MarshalEasyJSON supports easyjson.Marshaler interface
+func (v Results) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(w, v)
+}
+
+// UnmarshalJSON supports json.Unmarshaler interface
+func (v *Results) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(&r, v)
+	return r.Error()
+}
+
+// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
+func (v *Results) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(l, v)
+}
+func easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson1(in *jlexer.Lexer, out *Result) {
 	isTopLevel := in.IsStart()
 	if in.IsNull() {
 		if isTopLevel {
@@ -60,9 +126,9 @@ func easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(in *jlexe
 					out.Stack = (out.Stack)[:0]
 				}
 				for !in.IsDelim(']') {
-					var v1 string
-					v1 = string(in.String())
-					out.Stack = append(out.Stack, v1)
+					var v4 string
+					v4 = string(in.String())
+					out.Stack = append(out.Stack, v4)
 					in.WantComma()
 				}
 				in.Delim(']')
@@ -77,7 +143,7 @@ func easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(in *jlexe
 		in.Consumed()
 	}
 }
-func easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(out *jwriter.Writer, in Result) {
+func easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson1(out *jwriter.Writer, in Result) {
 	out.RawByte('{')
 	first := true
 	_ = first
@@ -108,11 +174,11 @@ func easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(out *jwri
 			out.RawString("null")
 		} else {
 			out.RawByte('[')
-			for v2, v3 := range in.Stack {
-				if v2 > 0 {
+			for v5, v6 := range in.Stack {
+				if v5 > 0 {
 					out.RawByte(',')
 				}
-				out.String(string(v3))
+				out.String(string(v6))
 			}
 			out.RawByte(']')
 		}
@@ -123,23 +189,23 @@ func easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(out *jwri
 // MarshalJSON supports json.Marshaler interface
 func (v Result) MarshalJSON() ([]byte, error) {
 	w := jwriter.Writer{}
-	easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(&w, v)
+	easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson1(&w, v)
 	return w.Buffer.BuildBytes(), w.Error
 }
 
 // MarshalEasyJSON supports easyjson.Marshaler interface
 func (v Result) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(w, v)
+	easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson1(w, v)
 }
 
 // UnmarshalJSON supports json.Unmarshaler interface
 func (v *Result) UnmarshalJSON(data []byte) error {
 	r := jlexer.Lexer{Data: data}
-	easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(&r, v)
+	easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson1(&r, v)
 	return r.Error()
 }
 
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *Result) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(l, v)
+	easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson1(l, v)
 }

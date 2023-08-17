@@ -4,7 +4,9 @@
 
 package repo
 
-import ()
+import (
+	"github.com/jackc/pgx/v5/pgtype"
+)
 
 type Person struct {
 	ID        string
@@ -13,4 +15,5 @@ type Person struct {
 	Birthday  string
 	Stack     []string
 	Docsearch interface{}
+	Trigram   pgtype.Text
 }

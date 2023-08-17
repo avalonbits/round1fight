@@ -7,8 +7,6 @@ package repo
 
 import (
 	"context"
-
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const countPerson = `-- name: CountPerson :one
@@ -30,7 +28,7 @@ type CreatePersonParams struct {
 	ID       string
 	Nickname string
 	Name     string
-	Birthday pgtype.Date
+	Birthday string
 	Stack    []string
 }
 
@@ -49,9 +47,17 @@ const getPerson = `-- name: GetPerson :one
 SELECT id, nickname, name, birthday, stack FROM Person where id = $1
 `
 
-func (q *Queries) GetPerson(ctx context.Context, id string) (Person, error) {
+type GetPersonRow struct {
+	ID       string
+	Nickname string
+	Name     string
+	Birthday string
+	Stack    []string
+}
+
+func (q *Queries) GetPerson(ctx context.Context, id string) (GetPersonRow, error) {
 	row := q.db.QueryRow(ctx, getPerson, id)
-	var i Person
+	var i GetPersonRow
 	err := row.Scan(
 		&i.ID,
 		&i.Nickname,
@@ -63,20 +69,27 @@ func (q *Queries) GetPerson(ctx context.Context, id string) (Person, error) {
 }
 
 const searchPerson = `-- name: SearchPerson :many
-SELECT id, nickname, name, birthday, stack  FROM Person
-    WHERE to_tsvector('portuguese', nickname || ' ' || name || ' ' || COALESCE(f_stack_array(stack), ''))
-          @@ plainto_tsquery($1::text) LIMIT 50
+SELECT id, nickname, name, birthday, stack
+    FROM Person WHERE docsearch @@ plainto_tsquery($1::text) LIMIT 50
 `
 
-func (q *Queries) SearchPerson(ctx context.Context, query string) ([]Person, error) {
+type SearchPersonRow struct {
+	ID       string
+	Nickname string
+	Name     string
+	Birthday string
+	Stack    []string
+}
+
+func (q *Queries) SearchPerson(ctx context.Context, query string) ([]SearchPersonRow, error) {
 	rows, err := q.db.Query(ctx, searchPerson, query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Person
+	var items []SearchPersonRow
 	for rows.Next() {
-		var i Person
+		var i SearchPersonRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Nickname,

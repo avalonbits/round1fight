@@ -19,49 +19,24 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"github.com/mailru/easyjson"
 )
 
-type sConn struct {
-	mu   sync.Mutex
-	conn *pgx.Conn
-}
-
-func (c *sConn) Exec(ctx context.Context, q string, args ...any) (pgconn.CommandTag, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.conn.Exec(ctx, q, args...)
-}
-
-func (c *sConn) Query(ctx context.Context, q string, args ...any) (pgx.Rows, error) {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.conn.Query(ctx, q, args...)
-}
-
-func (c *sConn) QueryRow(ctx context.Context, q string, args ...any) pgx.Row {
-	c.mu.Lock()
-	defer c.mu.Unlock()
-	return c.conn.QueryRow(ctx, q, args...)
-}
-
 func main() {
 	uuid.EnableRandPool()
-	ctx := context.Background()
-	dbURL := os.Getenv("DATABASE_URL")
-	conn, err := pgx.Connect(ctx, dbURL)
-	if err != nil {
-		panic(err)
-	}
-	defer conn.Close(ctx)
-	if _, err := conn.Exec(ctx, pg.Schema); err != nil {
-		panic(err)
-	}
 
-	svc := person.New(repo.New(&sConn{conn: conn}))
+	ctx := context.Background()
+	writeConn, readConn := connect(ctx)
+	defer writeConn.Close(ctx)
+	defer readConn.Close()
+
+	svc := person.New(repo.New(&sConn{writeConn: writeConn, readConn: readConn}))
 	person := api.New(svc)
 	e := echo.New()
+	e.Use(middleware.Gzip())
 
 	e.POST("/pessoas", person.Create)
 	e.GET("/pessoas/:id", person.Get)
@@ -115,4 +90,45 @@ func (_ easyJsonSerializer) Deserialize(c echo.Context, data any) error {
 		return echo.NewHTTPError(http.StatusBadRequest, err.Error())
 	}
 	return nil
+}
+
+func connect(ctx context.Context) (*pgx.Conn, *pgxpool.Pool) {
+	readConn, err := pgxpool.New(ctx, os.Getenv("POOL_DATABASE_URL"))
+	if err != nil {
+		panic(err)
+	}
+	if err := readConn.Ping(ctx); err != nil {
+		panic(err)
+	}
+
+	writeConn, err := pgx.Connect(ctx, os.Getenv("DATABASE_URL"))
+	if err != nil {
+		panic(err)
+	}
+
+	if _, err := writeConn.Exec(ctx, pg.Schema); err != nil {
+		panic(err)
+	}
+
+	return writeConn, readConn
+}
+
+type sConn struct {
+	mu        sync.Mutex
+	writeConn *pgx.Conn
+	readConn  *pgxpool.Pool
+}
+
+func (c *sConn) Exec(ctx context.Context, q string, args ...any) (pgconn.CommandTag, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.writeConn.Exec(ctx, q, args...)
+}
+
+func (c *sConn) Query(ctx context.Context, q string, args ...any) (pgx.Rows, error) {
+	return c.readConn.Query(ctx, q, args...)
+}
+
+func (c *sConn) QueryRow(ctx context.Context, q string, args ...any) pgx.Row {
+	return c.readConn.QueryRow(ctx, q, args...)
 }

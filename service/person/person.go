@@ -6,7 +6,6 @@ import (
 
 	"github.com/avalonbits/round1fight/storage/pg/repo"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Service struct {
@@ -26,11 +25,8 @@ func (s *Service) Create(
 		ID:       id,
 		Nickname: nickname,
 		Name:     name,
-		Birthday: pgtype.Date{
-			Time:  birthday,
-			Valid: true,
-		},
-		Stack: stack,
+		Birthday: birthday.Format("2006-01-02"),
+		Stack:    stack,
 	})
 }
 
@@ -42,7 +38,7 @@ func (s *Service) Count(ctx context.Context) (int64, error) {
 type Result struct {
 	ID       string   `json:"id"`
 	Nickname string   `json:"apelido"`
-	Name     string   `json:"name"`
+	Name     string   `json:"nome"`
 	Birthday string   `json:"nascimento"`
 	Stack    []string `json:"stack"`
 }
@@ -65,15 +61,15 @@ func (s *Service) Get(ctx context.Context, id string) (Result, error) {
 	if err != nil {
 		return Result{}, err
 	}
-	return resultFrom(r), nil
+	return resultFrom(repo.SearchPersonRow(r)), nil
 }
 
-func resultFrom(r repo.Person) Result {
+func resultFrom(r repo.SearchPersonRow) Result {
 	return Result{
 		ID:       r.ID,
 		Nickname: r.Nickname,
 		Name:     r.Name,
 		Stack:    r.Stack,
-		Birthday: r.Birthday.Time.Format("2006-01-02"),
+		Birthday: r.Birthday,
 	}
 }

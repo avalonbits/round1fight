@@ -40,7 +40,7 @@ func easyjsonDb0593a3DecodeGithubComAvalonbitsRound1fightServicePerson(in *jlexe
 			out.ID = string(in.String())
 		case "apelido":
 			out.Nickname = string(in.String())
-		case "name":
+		case "nome":
 			out.Name = string(in.String())
 		case "nascimento":
 			out.Birthday = string(in.String())
@@ -92,7 +92,7 @@ func easyjsonDb0593a3EncodeGithubComAvalonbitsRound1fightServicePerson(out *jwri
 		out.String(string(in.Nickname))
 	}
 	{
-		const prefix string = ",\"name\":"
+		const prefix string = ",\"nome\":"
 		out.RawString(prefix)
 		out.String(string(in.Name))
 	}

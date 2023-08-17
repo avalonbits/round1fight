@@ -41,12 +41,6 @@ func (jd *jsonDate) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (jd *jsonDate) MarshalJSON() ([]byte, error) {
-	d := jd.Format("2006-01-02")
-	fmt.Println(d)
-	return []byte(d), nil
-}
-
 //easyjson:json
 type personJSON struct {
 	ID       string    `json:"id"`
